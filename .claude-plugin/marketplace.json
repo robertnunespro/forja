@@ -1,0 +1,16 @@
+{
+  "name": "forja",
+  "owner": {
+    "name": "Robert Nunes",
+    "url": "https://github.com/robertnunespro"
+  },
+  "description": "Marketplace do FORJA.",
+  "plugins": [
+    {
+      "name": "forja",
+      "source": "./",
+      "description": "Squad de agentes por story, com gate do QA, janela pequena do dev e gotchas.",
+      "category": "engineering"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+story: '{N.M}'
+veredito: APROVADA   # APROVADA | APROVADA_COM_RESSALVAS | REPROVADA | RISCO_ACEITO
+commit: '{sha8}'
+quando: '{aaaa-mm-dd hh:mm}'
+por_que: '{uma frase}'
+
+contra_a_story: '{critério faltando, parcial ou errado; o que veio sem pedido}'
+contra_os_padroes: '{regra do repo quebrada; cheiros (opinião)}'
+
+rodei:
+  - '{arquivo de teste}: {passou}/{total}'
+  - 'build: {ok | quebrou}'
+
+achados:
+  - id: 'R{NM}-1'
+    peso: alto          # alto | medio | baixo
+    onde: '{arquivo:linha}'
+    defeito: '{o que está errado e como reproduzir}'
+    conserto: '{o que o @dev novo faz}'
+    situacao: aberto    # aberto | corrigido | aceito
+    vira_gotcha: false

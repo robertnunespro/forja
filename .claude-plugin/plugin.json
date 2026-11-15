@@ -1,0 +1,13 @@
+{
+  "name": "forja",
+  "displayName": "FORJA",
+  "version": "0.1.0",
+  "description": "Fluxo Orquestrado de Revisão, Janela e Aprendizado: squad de agentes por story, com gate do QA, janela pequena do dev e gotchas que não deixam o erro voltar.",
+  "author": {
+    "name": "Robert Nunes",
+    "url": "https://github.com/robertnunespro"
+  },
+  "repository": "https://github.com/robertnunespro/forja",
+  "license": "MIT",
+  "keywords": ["agents", "squad", "story", "qa-gate", "tdd", "context-window"]
+}
