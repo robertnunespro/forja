@@ -11,6 +11,12 @@
       "source": "./",
       "description": "Squad de agentes por story, com gate do QA, janela pequena do dev e gotchas.",
       "category": "engineering"
+    },
+    {
+      "name": "forja-faixa",
+      "source": "./faixa",
+      "description": "Faixa acima do prompt: story em andamento, contexto da janela do @dev contra o teto de 180k e o último gate.",
+      "category": "engineering"
     }
   ]
 }

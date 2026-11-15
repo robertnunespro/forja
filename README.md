@@ -28,6 +28,7 @@ mecânica vira gancho, não texto.
 | Skills | `coordenar`, `fatiar`, `tdd`, `revisar`, `gotcha`, `retro`, `passagem`, `iniciar` |
 | Ganchos | `trava-push` (PreToolUse/Bash), `limpa-vitest-orfao` (PostToolUse/Bash, SubagentStop, Stop) |
 | Moldes | story, gate, exploração, medição, passagem, gotchas |
+| Faixa (plugin `forja-faixa`) | linha acima do prompt, só em projeto com `.forja/`: `FORJA · 1.3 Em dev · @dev 142k/180k · gate 1.2 APROVADA`; avisa quando o @dev passa do teto |
 
 Ciclo da story: **Rascunho** (@sm) → **Pronta** (@po) → **Em dev** (@dev, janela a janela) → **Em revisão** →
 **Feita** (@qa) → publicação (@devops).
@@ -37,6 +38,7 @@ Ciclo da story: **Rascunho** (@sm) → **Pronta** (@po) → **Em dev** (@dev, ja
 ```bash
 claude plugin marketplace add robertnunespro/forja
 claude plugin install forja@forja
+claude plugin install forja-faixa@forja
 ```
 
 Ou num projeto, em `.claude/settings.json`:
@@ -44,7 +46,7 @@ Ou num projeto, em `.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": { "forja": { "source": { "source": "github", "repo": "robertnunespro/forja" } } },
-  "enabledPlugins": { "forja@forja": true }
+  "enabledPlugins": { "forja@forja": true, "forja-faixa@forja": true }
 }
 ```
 
