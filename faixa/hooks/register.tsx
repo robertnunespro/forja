@@ -174,10 +174,10 @@ export const register: Register = on => {
         <Box>
           {p ? <Text bold color="claude">{`${p} `}</Text> : null}
           {p ? <Text dimColor>· </Text> : null}
-          <Text dimColor>Sessão </Text>
-          <Text color={corDoPercentual(m.sessao?.usado)}>{m.sessao ? `${m.sessao.usado}%` : '—'}</Text>
+          {m.sessao ? <Text dimColor>Sessão </Text> : null}
+          {m.sessao ? <Text color={corDoPercentual(m.sessao.usado)}>{`${m.sessao.usado}%`}</Text> : null}
           {m.sessao?.renova ? <Text dimColor>{` ↻${hora(m.sessao.renova)}`}</Text> : null}
-          <Text dimColor> · Semana </Text>
+          <Text dimColor>{m.sessao ? ' · Semana ' : 'Semana '}</Text>
           <Text color={corDoPercentual(m.semana?.usado)}>{m.semana ? `${m.semana.usado}%` : '—'}</Text>
           {m.semana?.renova ? <Text dimColor>{` ↻${diaEHora(m.semana.renova)}`}</Text> : null}
           <Text dimColor> · Memória </Text>

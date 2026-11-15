@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 — 2026-11-15
+
+- `forja-faixa` 0.3.1: "Sessão" só aparece quando a conta tem limite de 5h (Max e Pro); no Ultra some.
+
 ## 0.4.0 — 2026-11-15
 
 - `forja-faixa` 0.3.0: mostra o plano da assinatura (Claude Ultra, Claude Max 20x, Pro…) no começo da linha; relê quando
