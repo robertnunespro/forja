@@ -18,6 +18,7 @@ declare module 'claude-code' {
       gate: Gate | null
       medida: Medida
       agentes: number
+      plano: string | null
     }
   }
 }

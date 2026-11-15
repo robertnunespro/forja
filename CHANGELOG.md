@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 — 2026-11-15
+
+- `forja-faixa` 0.3.0: mostra o plano da assinatura (Claude Ultra, Claude Max 20x, Pro…) no começo da linha; relê quando
+  a conta muda.
+
 ## 0.3.0 — 2026-11-15
 
 - `forja-faixa` 0.2.0: linha em todo projeto com sessão (5h) e semana da assinatura com a hora que renovam

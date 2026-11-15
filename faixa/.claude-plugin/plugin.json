@@ -1,6 +1,6 @@
 {
   "name": "forja-faixa",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Faixa do FORJA acima do prompt: story em andamento, contexto da janela do @dev contra o teto e o último gate",
   "author": { "name": "Robert Nunes", "url": "https://github.com/robertnunespro" },
   "license": "MIT",

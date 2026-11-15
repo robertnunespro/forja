@@ -17,6 +17,16 @@ const medida = atom({ plugin: 'forja-faixa', key: 'medida' } as const, {
   custo: null,
 } as Medida)
 const agentes = atom({ plugin: 'forja-faixa', key: 'agentes' } as const, 0)
+const plano = atom({ plugin: 'forja-faixa', key: 'plano' } as const, null)
+
+type Conta = { planDisplayName?: string; organizationType?: string; organizationRateLimitTier?: string }
+
+const nomeDoPlano = (c: Conta) => {
+  const nome = c.planDisplayName ?? c.organizationType?.replace(/^claude_/, '').replace(/^\w/, l => l.toUpperCase())
+  const multiplo = c.organizationRateLimitTier?.match(/(\d+x)$/)?.[1]
+  if (!nome) return null
+  return multiplo && !nome.includes(multiplo) && /max/i.test(nome) ? `Claude ${nome} ${multiplo}` : `Claude ${nome}`
+}
 
 const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 const emBrasilia = (iso: string) => new Date(new Date(iso).getTime() - 3 * 3600_000)
@@ -82,12 +92,27 @@ async function relerArquivos($: EngineInterface) {
   await update($, gate, () => g)
 }
 
+let configLidaEm = 0
+
+async function lerPlano($: EngineInterface) {
+  const dir = (await $.env.get('CLAUDE_CONFIG_DIR')) ?? (await $.env.get('HOME'))
+  if (!dir) return
+  const arq = `${dir}/.claude.json`
+  if (!(await $.fs.exists(arq))) return
+  const { mtimeMs } = await $.fs.stat(arq)
+  if (mtimeMs === configLidaEm) return
+  configLidaEm = mtimeMs
+  const conta: Conta = JSON.parse(await $.fs.read(arq)).oauthAccount ?? {}
+  const nome = nomeDoPlano(conta)
+  await update($, plano, () => nome)
+}
+
 export const register: Register = on => {
   const devs = new Set<string>()
 
   on('session.start', async ($, e, next) => {
     const r = await next(e)
-    await relerArquivos($)
+    await Promise.all([relerArquivos($), lerPlano($)])
     return r
   })
 
@@ -129,14 +154,14 @@ export const register: Register = on => {
 
   on('turn.complete', async ($, e, next) => {
     const r = await next(e)
-    await Promise.all([relerArquivos($), contarAgentes($)])
+    await Promise.all([relerArquivos($), contarAgentes($), lerPlano($)])
     return r
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
 
-    const [m, n, temForja] = await Promise.all([read($, medida), read($, agentes), read($, ativo)])
+    const [m, n, temForja, p] = await Promise.all([read($, medida), read($, agentes), read($, ativo), read($, plano)])
     const [s, d, g] = temForja
       ? await Promise.all([read($, story), read($, dev), read($, gate)])
       : [null, null, null]
@@ -147,6 +172,8 @@ export const register: Register = on => {
     return (
       <Box flexDirection="column">
         <Box>
+          {p ? <Text bold color="claude">{`${p} `}</Text> : null}
+          {p ? <Text dimColor>· </Text> : null}
           <Text dimColor>Sessão </Text>
           <Text color={corDoPercentual(m.sessao?.usado)}>{m.sessao ? `${m.sessao.usado}%` : '—'}</Text>
           {m.sessao?.renova ? <Text dimColor>{` ↻${hora(m.sessao.renova)}`}</Text> : null}
