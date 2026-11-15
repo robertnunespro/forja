@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
-import type { EngineInterface, Register, TurnUsage } from 'claude-code'
+import type { EngineInterface, Register, SessionRateLimit, TurnUsage } from 'claude-code'
 
-import type { Gate, Janela, Story } from '../types'
+import type { Cota, Gate, Janela, Medida, Story } from '../types'
 
 const TETO = 180_000
 const ALERTA = 150_000
@@ -10,6 +10,34 @@ const ativo = atom({ plugin: 'forja-faixa', key: 'ativo' } as const, false)
 const dev = atom({ plugin: 'forja-faixa', key: 'dev' } as const, null)
 const story = atom({ plugin: 'forja-faixa', key: 'story' } as const, null)
 const gate = atom({ plugin: 'forja-faixa', key: 'gate' } as const, null)
+const medida = atom({ plugin: 'forja-faixa', key: 'medida' } as const, {
+  sessao: null,
+  semana: null,
+  memoria: null,
+  custo: null,
+} as Medida)
+const agentes = atom({ plugin: 'forja-faixa', key: 'agentes' } as const, 0)
+
+const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+const emBrasilia = (iso: string) => new Date(new Date(iso).getTime() - 3 * 3600_000)
+const dois = (n: number) => String(n).padStart(2, '0')
+const hora = (iso: string) => {
+  const d = emBrasilia(iso)
+  return `${dois(d.getUTCHours())}:${dois(d.getUTCMinutes())}`
+}
+const diaEHora = (iso: string) => `${DIAS[emBrasilia(iso).getUTCDay()]} ${hora(iso)}`
+const cota = (limites: SessionRateLimit[], tipo: string): Cota | null => {
+  const l = limites.find(x => x.kind === tipo)
+  return l ? { usado: l.percentUsed, renova: l.resetsAt } : null
+}
+const corDoPercentual = (p: number | null | undefined) =>
+  p == null ? 'subtle' : p >= 85 ? 'error' : p >= 60 ? 'warning' : 'success'
+
+async function contarAgentes($: EngineInterface) {
+  const lista = await $.agent.list()
+  const rodando = lista.filter(a => a.status === 'running').length
+  await update($, agentes, () => rodando)
+}
 
 const ehDev = (tipo: string) => /(^|:)dev$/.test(tipo)
 const contexto = (u: TurnUsage) =>
@@ -63,8 +91,21 @@ export const register: Register = on => {
     return r
   })
 
+  on('session.measure', async ($, e, next) => {
+    const r = await next(e)
+    const m: Medida = {
+      sessao: cota(e.rateLimits, 'five_hour'),
+      semana: cota(e.rateLimits, 'seven_day'),
+      memoria: e.context.percent ?? null,
+      custo: e.cost?.usd ?? null,
+    }
+    await update($, medida, () => m)
+    return r
+  })
+
   on('agent.spawn', async ($, e, next) => {
     const r = await next(e)
+    await contarAgentes($)
     if (ehDev(e.subagentType) && r.agentId) {
       devs.add(r.agentId)
       const janela: Janela = { agentId: r.agentId, atual: 0, pico: 0, estourou: false }
@@ -88,28 +129,47 @@ export const register: Register = on => {
 
   on('turn.complete', async ($, e, next) => {
     const r = await next(e)
-    await relerArquivos($)
+    await Promise.all([relerArquivos($), contarAgentes($)])
     return r
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
-    if (e.props.hasSurvey || !(await read($, ativo))) return next(e)
+    if (e.props.hasSurvey) return next(e)
 
-    const [s, d, g] = await Promise.all([read($, story), read($, dev), read($, gate)])
+    const [m, n, temForja] = await Promise.all([read($, medida), read($, agentes), read($, ativo)])
+    const [s, d, g] = temForja
+      ? await Promise.all([read($, story), read($, dev), read($, gate)])
+      : [null, null, null]
     const { Box, Text } = $.ui.resolve(e)
     const corDev = !d ? 'subtle' : d.atual > TETO ? 'error' : d.atual > ALERTA ? 'warning' : 'success'
     const corGate = !g ? 'subtle' : /REPROVADA/.test(g.veredito) ? 'error' : /RESSALVAS|RISCO/.test(g.veredito) ? 'warning' : 'success'
 
     return (
-      <Box>
-        <Text bold>FORJA </Text>
-        <Text dimColor>· </Text>
-        <Text>{s ? `${s.id} ${s.status}` : 'sem story aberta'}</Text>
-        <Text dimColor> · @dev </Text>
-        <Text color={corDev}>{d ? `${mil(d.atual)}/${mil(TETO)}` : '—'}</Text>
-        {d && d.pico > d.atual ? <Text dimColor>{` (pico ${mil(d.pico)})`}</Text> : null}
-        <Text dimColor> · gate </Text>
-        <Text color={corGate}>{g ? `${g.story} ${g.veredito}` : '—'}</Text>
+      <Box flexDirection="column">
+        <Box>
+          <Text dimColor>Sessão </Text>
+          <Text color={corDoPercentual(m.sessao?.usado)}>{m.sessao ? `${m.sessao.usado}%` : '—'}</Text>
+          {m.sessao?.renova ? <Text dimColor>{` ↻${hora(m.sessao.renova)}`}</Text> : null}
+          <Text dimColor> · Semana </Text>
+          <Text color={corDoPercentual(m.semana?.usado)}>{m.semana ? `${m.semana.usado}%` : '—'}</Text>
+          {m.semana?.renova ? <Text dimColor>{` ↻${diaEHora(m.semana.renova)}`}</Text> : null}
+          <Text dimColor> · Memória </Text>
+          <Text color={corDoPercentual(m.memoria)}>{m.memoria != null ? `${Math.round(m.memoria)}%` : '—'}</Text>
+          {m.custo != null ? <Text dimColor>{` · US$ ${m.custo.toFixed(2).replace('.', ',')}`}</Text> : null}
+          {n > 0 ? <Text dimColor>{` · ${n} ${n === 1 ? 'agente' : 'agentes'} rodando`}</Text> : null}
+        </Box>
+        {temForja ? (
+          <Box>
+            <Text bold>FORJA </Text>
+            <Text dimColor>· </Text>
+            <Text>{s ? `${s.id} ${s.status}` : 'sem story aberta'}</Text>
+            <Text dimColor> · @dev </Text>
+            <Text color={corDev}>{d ? `${mil(d.atual)}/${mil(TETO)}` : '—'}</Text>
+            {d && d.pico > d.atual ? <Text dimColor>{` (pico ${mil(d.pico)})`}</Text> : null}
+            <Text dimColor> · gate </Text>
+            <Text color={corGate}>{g ? `${g.story} ${g.veredito}` : '—'}</Text>
+          </Box>
+        ) : null}
       </Box>
     )
   })
