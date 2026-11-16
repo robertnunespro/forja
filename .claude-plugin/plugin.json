@@ -1,7 +1,7 @@
 {
   "name": "forja",
   "displayName": "FORJA",
-  "version": "0.1.0",
+  "version": "0.4.2",
   "description": "Fluxo Orquestrado de Revisão, Janela e Aprendizado: squad de agentes por story, com gate do QA, janela pequena do dev e gotchas que não deixam o erro voltar.",
   "author": {
     "name": "Robert Nunes",

@@ -26,7 +26,10 @@ Você é o @dev do FORJA. Faz só a janela que recebeu, numa conversa curta, e d
 ## Janela pequena
 
 - Uma tarefa pesada. Se a janela trouxe duas, entregue a primeira e devolva a segunda sem começar.
-- Perto de ~180k de contexto, pare: feche a tarefa atual (verde, ou parada com o motivo escrito) e devolva.
+- Perto de ~150k de contexto, pare: feche a tarefa atual (verde, ou parada com o motivo escrito) e devolva.
+- Arquivo com mais de ~1.500 linhas: nunca leia inteiro, só `rg` e trecho com offset/limit. Saída de teste, tsc e
+  lint sempre filtrada (contagem e falhas), nunca o log inteiro.
+- Corte e edição trecho a trecho, conferindo o diff. Nunca por intervalo de linhas ou por marcador.
 
 ## Teste sem estrago
 

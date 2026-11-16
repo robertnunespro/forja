@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.2 — 2026-11-16
+
+- Teto da janela do `@dev` cai de ~180k para ~150k (`coordenar`, `fatiar`, `dev`). Medido na story F1.0a do WL
+  analista: N-b com ~195k de pico (374k tokens), E-b ~190k, E ~180k, por escopo grande e leitura repetida de arquivos
+  de 5–6 mil linhas, mais uma janela refeita por corte por intervalo de linhas.
+- `coordenar`: medir o peso antes de disparar (mais de ~30 arquivos ou arquivo acima de ~1.500 linhas → dividir antes);
+  nunca dois cortes numa janela; regras de paralelo na mesma cópia do repo; stage vazio e `git add` por caminho antes
+  de cada commit do coordenador (um commit de docs levou exclusões de outra janela).
+- `dev`: arquivo grande só por `rg` e trecho; saída de teste/tsc/lint filtrada; edição trecho a trecho, nunca por
+  intervalo de linhas.
+
 ## 0.4.1 — 2026-11-15
 
 - `forja-faixa` 0.3.1: "Sessão" só aparece quando a conta tem limite de 5h (Max e Pro); no Ultra some.
